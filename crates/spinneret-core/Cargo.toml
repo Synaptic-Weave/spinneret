@@ -1,0 +1,12 @@
+[package]
+name = "spinneret-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.103"
+hyper = "1.0.1"
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "macros", "fs"] }
+wasmtime = { version = "46.0.1", features = ["component-model"] }
+wasmtime-wasi = "46.0.1"
+wasmtime-wasi-http = "46.0.1"
