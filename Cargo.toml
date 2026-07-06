@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "crates/spinneret-core",
-    "crates/spinneret-napi",
-    "crates/spinneret-server",
-    "crates/spinneret-cli"
-, "crates/hello-wasm"]
+    "crates/loom",
+    "crates/loom-cli",
+    "crates/spinneret",
+    "crates/hello-wasm"
+]
 resolver = "2"

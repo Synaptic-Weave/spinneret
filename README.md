@@ -1,6 +1,8 @@
 # Spinneret
 
-Spinneret is a high-performance, strictly sandboxed execution engine for WebAssembly (WASM) components. Built on top of `wasmtime` and the WASM Component Model, it is designed for secure, multi-tenant execution of untrusted code with fine-grained control over system resources and capabilities.
+Spinneret is an agent orchestrator and Tool API gateway. It dynamically spins up strict, capability-based WebAssembly (WASM) execution environments to execute untrusted third-party code. 
+
+The low-level execution engine beneath Spinneret is called **Loom**. Built on top of `wasmtime` and the WASM Component Model, Loom provides the secure, zero-trust hypervisor layer.
 
 ## Features
 
@@ -9,15 +11,15 @@ Spinneret is a high-performance, strictly sandboxed execution engine for WebAsse
 * **Granular Egress Control**: Custom domain allow-listing for outbound HTTP requests (`wasi:http`) through an interception proxy.
 * **Worktree Mounting**: Controlled, isolated access to specific host directories via pre-opened directories.
 * **Multi-tenancy Ready**: Designed to isolate execution states and provide environment variables dynamically per sandbox.
+* **Agents as Tools**: Treat complex LLM agents as tools that can execute inside the sandbox via WASM Component Composition.
 
 ## Architecture
 
-Spinneret is composed of a core execution engine and several interfaces:
+The project is structured into several interconnected crates:
 
-* **`spinneret-core`**: The central WASI runtime and execution environment. Manages the Wasmtime engine, global component caching, and individual `Extrusion` sandboxes.
-* **`spinneret-napi`** *(WIP)*: Node.js bindings via `napi-rs` to allow JavaScript/TypeScript orchestrators to launch sandboxes natively.
-* **`spinneret-cli`** *(WIP)*: A command-line interface for running and testing components locally.
-* **`spinneret-server`** *(WIP)*: An HTTP daemon that receives requests and dynamically spawns execution extrusions.
+* **`spinneret`**: The orchestrator HTTP/gRPC daemon. It receives JSON requests from management layers (like Arachne), pulls and verifies OCI artifacts, and coordinates the execution of tools.
+* **`loom`**: The underlying WASI runtime and execution environment. It manages the Wasmtime engine, global component caching, and individual isolated execution sandboxes.
+* **`loom-cli`**: A command-line interface for running and testing components locally via the Loom hypervisor.
 * **`hello-wasm`**: A sample WASM component used for integration testing.
 
 ## Getting Started
