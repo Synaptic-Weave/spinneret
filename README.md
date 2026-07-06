@@ -20,7 +20,10 @@ The project is structured into several interconnected crates:
 * **`spinneret`**: The orchestrator HTTP/gRPC daemon. It receives JSON requests from management layers (like Arachne), pulls and verifies OCI artifacts, and coordinates the execution of tools.
 * **`loom`**: The underlying WASI runtime and execution environment. It manages the Wasmtime engine, global component caching, and individual isolated execution sandboxes.
 * **`loom-cli`**: A command-line interface for running and testing components locally via the Loom hypervisor.
-* **`hello-wasm`**: A sample WASM component used for integration testing.
+* **`orbs/`**: The foundational 1st-Party Tools ("Standard Library") for the ecosystem, including:
+  * **`agent-worker`**: The core LLM execution loop, compiled to WASM. Has no network privileges.
+  * **`http-client`**: The authorized network egress component. Enforces strict URL allowlists.
+  * **`hello-wasm`**: A simple WASM component used for internal integration testing.
 
 ## Getting Started
 

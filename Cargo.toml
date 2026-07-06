@@ -3,6 +3,6 @@ members = [
     "crates/loom",
     "crates/loom-cli",
     "crates/spinneret",
-    "crates/hello-wasm"
+    "crates/orbs/*"
 ]
 resolver = "2"

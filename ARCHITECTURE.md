@@ -67,4 +67,7 @@ To guarantee sub-millisecond cold starts without compromising the TOCTOU securit
 * **`spinneret`**: The HTTP daemon capable of pulling Orbs, exposing JSON APIs to Arachne, and spinning up Extrusions via Loom.
 * **`loom`**: The foundational WASI runtime and execution environment handling capabilities, limits, and the `Engine`/`Extrusion` implementations.
 * **`loom-cli`**: A command-line utility for local development and running components.
-* **`hello-wasm`**: A simple WASM component used for internal integration testing.
+* **`orbs/`**: The 1st-Party Native Tools (The Standard Library), deployed alongside the hypervisor for guaranteed component composition:
+  * **`agent-worker`**: The core LLM loop. **NO** `wasi:http` capability. Forced to compose with network tools.
+  * **`http-client`**: The Egress tool. **HAS** `wasi:http` capability and enforces the strict host allowlist.
+  * **`hello-wasm`**: A sample WASM component used for internal integration testing.
