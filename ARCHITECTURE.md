@@ -62,6 +62,23 @@ An `Extrusion` represents a single, isolated, ephemeral execution sandbox.
 
 To guarantee sub-millisecond cold starts without compromising the TOCTOU security model, the dynamic loader implements a verified local cache.
 
+## Local Deployment Mode: The Hosted Core
+
+For local-first agent harnesses (such as desktop applications or developer-focused CLI environments), Spinneret supports running as a **Hosted Core** rather than a distributed cloud service. This topology eliminates remote OCI registry overhead and distributed networking latency.
+
+Spinneret provides two local-first execution paradigms:
+
+### 1. Embedded Library Mode (In-Process)
+For desktop apps built with Rust-based frameworks like Tauri:
+* Spinneret is linked directly as a library crate dependency.
+* The host program communicates with the `HostedCore` API programmatically in-process, bypassing HTTP/gRPC completely.
+* Eliminates network interface configuration and serialized transmission latency, enabling near-instantaneous execution.
+
+### 2. Secure Local IPC Sidecar (Standard I/O JSON-RPC)
+For desktop apps built with JavaScript/TypeScript (Electron) or Python (PyQt):
+* Spinneret compiles as an executable sidecar binary and communicates via `stdin`/`stdout` Standard I/O using a JSON-RPC-style protocol.
+* Avoids binding to TCP ports (such as `127.0.0.1:8080`), entirely preventing loopback network sniffing, port collisions, or operating system firewall warnings.
+
 ## Workspace Crates
 
 * **`spinneret`**: The HTTP daemon capable of pulling Orbs, exposing JSON APIs to Arachne, and spinning up Extrusions via Loom.

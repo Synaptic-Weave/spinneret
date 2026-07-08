@@ -4,7 +4,11 @@ This roadmap outlines the development phases, planned API surfaces, and upcoming
 
 ## Phase 1: Core Execution & Daemon Integration
 
-The initial phase focuses on hardening the `loom` hypervisor execution sandbox, and building the `spinneret` HTTP daemon to expose a clean Tool API to Arachne (the management layer).
+The initial phase focuses on hardening the `loom` hypervisor execution sandbox, building the `spinneret` library and daemon to support local-first desktop integration (the Hosted Core), and establishing the tool execution APIs.
+
+### Local & Library Execution (Hosted Core)
+* **Embedded Library (`lib.rs`)**: Package programmatic in-memory execution bindings for Rust hosts (like Tauri desktop apps). *(Completed)*
+* **Secure Stdin/Stdout Sidecar IPC**: Enable Electron (TS) and Python to run the Spinneret binary as a secure, zero-port-conflict child process using a JSON-RPC-style stdin/stdout streaming interface. *(Completed)*
 
 ### The Spinneret Tool API
 

@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
-    <mapping directory="$PROJECT_DIR$/crates/spinneret-cli" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/crates/spinneret-core" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/crates/spinneret-napi" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/crates/spinneret-server" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
   </component>
 </project>

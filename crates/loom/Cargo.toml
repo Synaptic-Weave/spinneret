@@ -10,3 +10,7 @@ tokio = { version = "1.52.3", features = ["rt-multi-thread", "macros", "fs"] }
 wasmtime = { version = "46.0.1", features = ["component-model"] }
 wasmtime-wasi = "46.0.1"
 wasmtime-wasi-http = "46.0.1"
+
+[dev-dependencies]
+tempfile = "3.15.0"
+

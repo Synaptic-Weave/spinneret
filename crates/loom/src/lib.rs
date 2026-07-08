@@ -84,6 +84,7 @@ pub struct ExtrusionState {
     pub http: WasiHttpCtx,
     pub http_hooks: SpinneretHttpHooks,
     pub table: wasmtime::component::ResourceTable,
+    pub memory_limit_bytes: usize,
 }
 
 impl WasiView for ExtrusionState {
@@ -102,6 +103,36 @@ impl WasiHttpView for ExtrusionState {
             table: &mut self.table,
             hooks: &mut self.http_hooks,
         }
+    }
+}
+
+impl wasmtime::ResourceLimiter for ExtrusionState {
+    fn memory_growing(
+        &mut self,
+        _current: usize,
+        desired: usize,
+        _maximum: Option<usize>,
+    ) -> std::result::Result<bool, wasmtime::Error> {
+        if desired > self.memory_limit_bytes {
+            // Returning Err or Ok(false) prevents the allocation.
+            // Under WASI/Wasmtime, returning an error traps/aborts execution,
+            // while returning false can either cause standard allocation failure or trap.
+            // Let's return Err to make it trap reliably.
+            return Err(wasmtime::Error::msg(format!(
+                "Memory limit exceeded: desired={}, limit={}",
+                desired, self.memory_limit_bytes
+            )));
+        }
+        Ok(true)
+    }
+
+    fn table_growing(
+        &mut self,
+        _current: usize,
+        _desired: usize,
+        _maximum: Option<usize>,
+    ) -> std::result::Result<bool, wasmtime::Error> {
+        Ok(true)
     }
 }
 
@@ -138,12 +169,16 @@ impl Extrusion {
             http: WasiHttpCtx::new(),
             http_hooks,
             table: wasmtime::component::ResourceTable::new(),
+            memory_limit_bytes: config.memory_limit_bytes,
         };
 
         let mut store = Store::new(&engine.inner, state);
 
         // Inject fuel
         store.set_fuel(config.fuel_limit)?;
+
+        // Enforce the memory limit using the resource limiter
+        store.limiter(|state| state);
 
         Ok(Self { store })
     }
@@ -209,5 +244,78 @@ mod tests {
         assert!(result.is_err());
         let err_string = format!("{:?}", result.unwrap_err());
         assert!(err_string.contains("URL not allowed"));
+    }
+
+    #[test]
+    fn test_extrusion_fuel_exhaustion() {
+        let engine = Engine::new().unwrap();
+        let mut config = ExtrusionConfig::default();
+        config.fuel_limit = 1_000; // very small limit to guarantee fuel trap
+        config.environment_variables.insert("TEST_MODE".to_string(), "fuel".to_string());
+        
+        let mut extrusion = Extrusion::new(&engine, config).unwrap();
+        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let component = engine.load_component(&path).unwrap();
+        
+        let result = extrusion.run(&engine, &component);
+        assert!(result.is_err());
+        let err_string = format!("{:?}", result.unwrap_err());
+        assert!(err_string.contains("all fuel consumed") || err_string.contains("trap"));
+    }
+
+    #[test]
+    fn test_extrusion_memory_exhaustion() {
+        let engine = Engine::new().unwrap();
+        let mut config = ExtrusionConfig::default();
+        // 5MB limit
+        config.memory_limit_bytes = 5 * 1024 * 1024;
+        config.environment_variables.insert("TEST_MODE".to_string(), "memory".to_string());
+        
+        let mut extrusion = Extrusion::new(&engine, config).unwrap();
+        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let component = engine.load_component(&path).unwrap();
+        
+        let result = extrusion.run(&engine, &component);
+        assert!(result.is_err());
+        let err_string = format!("{:?}", result.unwrap_err());
+        assert!(err_string.contains("Memory limit exceeded") || err_string.contains("trap"));
+    }
+
+    #[test]
+    fn test_extrusion_environment_variables() {
+        let engine = Engine::new().unwrap();
+        let mut config = ExtrusionConfig::default();
+        config.environment_variables.insert("TEST_MODE".to_string(), "env".to_string());
+        config.environment_variables.insert("MY_VAR".to_string(), "MY_VALUE".to_string());
+        
+        let mut extrusion = Extrusion::new(&engine, config).unwrap();
+        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let component = engine.load_component(&path).unwrap();
+        
+        let result = extrusion.run(&engine, &component);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_extrusion_workspace_mounting() {
+        let engine = Engine::new().unwrap();
+        let mut config = ExtrusionConfig::default();
+        
+        let temp_dir = tempfile::tempdir().unwrap();
+        config.worktree_mount_path = Some(temp_dir.path().to_path_buf());
+        config.environment_variables.insert("TEST_MODE".to_string(), "workspace".to_string());
+        
+        let mut extrusion = Extrusion::new(&engine, config).unwrap();
+        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let component = engine.load_component(&path).unwrap();
+        
+        let result = extrusion.run(&engine, &component);
+        assert!(result.is_ok());
+        
+        // Check that the file was indeed written by the WASM component in our host folder!
+        let written_file = temp_dir.path().join("test.txt");
+        assert!(written_file.exists());
+        let content = std::fs::read_to_string(written_file).unwrap();
+        assert_eq!(content, "Spinneret Workspace Test");
     }
 }

@@ -6,6 +6,12 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/spinneret-core/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/spinneret-napi/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/spinneret-server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/loom-cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/loom/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/orbs/agent-worker/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/orbs/hello-wasm/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/orbs/http-client/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/spinneret/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
