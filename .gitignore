@@ -2,3 +2,8 @@
 /node_modules
 Cargo.lock
 .env
+
+# Gemini local & temporary files
+.gemini/scratch/
+.gemini/logs/
+.gemini/*.local.*
