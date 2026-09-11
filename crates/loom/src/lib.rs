@@ -210,6 +210,43 @@ mod tests {
         assert!(extrusion.is_ok());
     }
 
+    fn test_wasm_path(orb_name: &str) -> PathBuf {
+        let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let workspace_root = manifest_dir
+            .parent()
+            .and_then(|p| p.parent())
+            .unwrap_or(&manifest_dir);
+        let target_dir = std::env::var_os("CARGO_TARGET_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| workspace_root.join("target"));
+
+        let candidate_paths = [
+            target_dir.join("wasm32-wasip2/debug").join(format!("{}.wasm", orb_name)),
+            target_dir.join("wasm32-wasip1/debug").join(format!("{}.wasm", orb_name)),
+        ];
+
+        for path in &candidate_paths {
+            if path.exists() {
+                return path.clone();
+            }
+        }
+
+        panic!(
+            "Test WASM fixture '{}.wasm' not found. Tried:\n  {}\n\
+            Please build the test orbs first by running:\n  \
+            cargo build-orbs\n\
+            or:\n  \
+            cargo test-all\n\
+            (Ensure target 'wasm32-wasip2' is installed: 'rustup target add wasm32-wasip2')",
+            orb_name,
+            candidate_paths
+                .iter()
+                .map(|p| p.display().to_string())
+                .collect::<Vec<_>>()
+                .join("\n  ")
+        );
+    }
+
     #[test]
     fn test_extrusion_http_allowed() {
         let engine = Engine::new().unwrap();
@@ -218,7 +255,7 @@ mod tests {
         config.environment_variables.insert("TARGET_HOST".to_string(), "example.com".to_string());
         
         let mut extrusion = Extrusion::new(&engine, config).unwrap();
-        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let path = test_wasm_path("hello-wasm");
         let component = engine.load_component(&path).unwrap();
         
         let result = extrusion.run(&engine, &component);
@@ -236,7 +273,7 @@ mod tests {
         config.environment_variables.insert("TARGET_HOST".to_string(), "blocked.com".to_string());
         
         let mut extrusion = Extrusion::new(&engine, config).unwrap();
-        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let path = test_wasm_path("hello-wasm");
         let component = engine.load_component(&path).unwrap();
         
         let result = extrusion.run(&engine, &component);
@@ -254,7 +291,7 @@ mod tests {
         config.environment_variables.insert("TEST_MODE".to_string(), "fuel".to_string());
         
         let mut extrusion = Extrusion::new(&engine, config).unwrap();
-        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let path = test_wasm_path("hello-wasm");
         let component = engine.load_component(&path).unwrap();
         
         let result = extrusion.run(&engine, &component);
@@ -272,7 +309,7 @@ mod tests {
         config.environment_variables.insert("TEST_MODE".to_string(), "memory".to_string());
         
         let mut extrusion = Extrusion::new(&engine, config).unwrap();
-        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let path = test_wasm_path("hello-wasm");
         let component = engine.load_component(&path).unwrap();
         
         let result = extrusion.run(&engine, &component);
@@ -289,7 +326,7 @@ mod tests {
         config.environment_variables.insert("MY_VAR".to_string(), "MY_VALUE".to_string());
         
         let mut extrusion = Extrusion::new(&engine, config).unwrap();
-        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let path = test_wasm_path("hello-wasm");
         let component = engine.load_component(&path).unwrap();
         
         let result = extrusion.run(&engine, &component);
@@ -306,7 +343,7 @@ mod tests {
         config.environment_variables.insert("TEST_MODE".to_string(), "workspace".to_string());
         
         let mut extrusion = Extrusion::new(&engine, config).unwrap();
-        let path = PathBuf::from("../../target/wasm32-wasip1/debug/hello-wasm.wasm");
+        let path = test_wasm_path("hello-wasm");
         let component = engine.load_component(&path).unwrap();
         
         let result = extrusion.run(&engine, &component);

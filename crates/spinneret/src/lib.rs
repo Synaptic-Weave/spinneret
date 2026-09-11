@@ -212,11 +212,39 @@ mod tests {
         assert!(err_msg.contains("Orb 'missing-orb' not found"));
     }
 
+    fn test_search_dirs() -> Vec<PathBuf> {
+        let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let workspace_root = manifest_dir
+            .parent()
+            .and_then(|p| p.parent())
+            .unwrap_or(&manifest_dir);
+        let target_dir = std::env::var_os("CARGO_TARGET_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| workspace_root.join("target"));
+
+        let dirs = vec![
+            target_dir.join("wasm32-wasip2/debug"),
+            target_dir.join("wasm32-wasip1/debug"),
+        ];
+
+        if !dirs.iter().any(|d| d.join("hello-wasm.wasm").exists()) {
+            panic!(
+                "Test WASM fixture 'hello-wasm.wasm' not found in search paths: {:?}.\n\
+                Please build the test orbs first by running:\n  \
+                cargo build-orbs\n\
+                or:\n  \
+                cargo test-all\n\
+                (Ensure target 'wasm32-wasip2' is installed: 'rustup target add wasm32-wasip2')",
+                dirs
+            );
+        }
+
+        dirs
+    }
+
     #[test]
     fn test_hosted_core_execute_success() {
-        // Point HostedCore search path to target directory containing hello-wasm.wasm
-        let target_dir = PathBuf::from("../../target/wasm32-wasip1/debug");
-        let core = HostedCore::init(vec![target_dir]).unwrap();
+        let core = HostedCore::init(test_search_dirs()).unwrap();
         
         let mut env_vars = HashMap::new();
         env_vars.insert("TEST_MODE".to_string(), "env".to_string());
@@ -240,8 +268,7 @@ mod tests {
 
     #[test]
     fn test_hosted_core_execute_blocked_domain() {
-        let target_dir = PathBuf::from("../../target/wasm32-wasip1/debug");
-        let core = HostedCore::init(vec![target_dir]).unwrap();
+        let core = HostedCore::init(test_search_dirs()).unwrap();
         
         let mut env_vars = HashMap::new();
         env_vars.insert("TARGET_HOST".to_string(), "blocked.com".to_string());
@@ -264,8 +291,7 @@ mod tests {
 
     #[test]
     fn test_daemon_ipc_valid() {
-        let target_dir = PathBuf::from("../../target/wasm32-wasip1/debug");
-        let core = HostedCore::init(vec![target_dir]).unwrap();
+        let core = HostedCore::init(test_search_dirs()).unwrap();
 
         let mut env_vars = HashMap::new();
         env_vars.insert("TEST_MODE".to_string(), "env".to_string());

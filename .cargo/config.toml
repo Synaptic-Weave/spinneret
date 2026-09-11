@@ -1,0 +1,3 @@
+[alias]
+# Build the foundational WASM orbs for WASI Preview 2
+build-orbs = "build -p hello-wasm -p agent-worker -p http-client --target wasm32-wasip2"
